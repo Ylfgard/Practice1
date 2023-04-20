@@ -1,15 +1,17 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using MapSystem.TileLayer;
 
 namespace MapSystem
 {
     public class MapKeeper : MonoBehaviour
     {
-        [SerializeField] private MapGenerator _mapGenerator;
-        [SerializeField] private MapConnectionsGenerator _connectionsGenerator;
+        [SerializeField] private TileGenerator _mapGenerator;
+        [SerializeField] private TileConnectionsGenerator _connectionsGenerator;
         private MapCell[,] _mapCells;
 
         private int _width, _hight;
+
+        public MapCell[,] MapCells => _mapCells;
 
         private void Awake()
         {
@@ -38,7 +40,9 @@ namespace MapSystem
             bottomLeft = left && bottom;
             bottomRight = right && bottom;
 
-            _mapCells[x, y] = new MapCell(cost, topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
+            AvailableTransitions availableTransitions = 
+                new AvailableTransitions(topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
+            _mapCells[x, y] = new MapCell(cost, availableTransitions);
         }
 
         private void OnDestroy()
@@ -46,37 +50,6 @@ namespace MapSystem
             _mapGenerator.GenerationStarted -= SetMapSize;
             _mapGenerator.SendCost -= SetCell;
             _connectionsGenerator.SendCost -= SetCell;
-        }
-    }
-
-    public class MapCell
-    {
-        private int _cost;
-        private bool _topLeft, _top, _topRight, _left, _right, _bottomLeft, _bottom, _bottomRight, _available;
-
-        public int Cost => _cost;
-        public bool TopLeft => _topLeft;
-        public bool Top => _top;
-        public bool TopRight => _topRight;
-        public bool Left => _left;
-        public bool Right => _right;
-        public bool BottomLeft => _bottomLeft;
-        public bool Bottom => _bottom;
-        public bool BottomRight => _bottomRight;
-        public bool Available => _available;
-
-        public MapCell(int cost, bool topLeft, bool top, bool topRight, bool left, bool right, bool bottomLeft, bool bottom, bool bottomRight)
-        {
-            _cost = cost;
-            _topLeft = topLeft;
-            _top = top;
-            _topRight = topRight;
-            _left = left;
-            _right = right;
-            _bottomLeft = bottomLeft;
-            _bottom = bottom;
-            _bottomRight = bottomRight;
-            _available = true;
         }
     }
 }

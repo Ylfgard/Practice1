@@ -1,27 +1,27 @@
 using UnityEditor;
-using MapSystem;
+using MapSystem.TileLayer;
 using UnityEngine;
 
 namespace CustomProperty
 {
-    [CustomPropertyDrawer(typeof(TileChoiceRules))]
+    [CustomPropertyDrawer(typeof(ChoiceRules))]
     public class TileChoiceRulesUIE : PropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUI.GetPropertyHeight(property) * 4;
+            return EditorGUI.GetPropertyHeight(property) * 3;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
 
-            Rect lablePosition = new Rect(position.x, position.y + position.height / 2, position.width, position.height);
+            Rect lablePosition = new Rect(position.x, position.y + position.height / 3, position.width, position.height);
 
             position = EditorGUI.PrefixLabel(lablePosition, label);
             
             float widthSize = position.width / 9;
-            position.height /= 4;
+            position.height /= 3;
             float hightSize = position.height;
 
             Rect pos1 = new Rect(position.x, position.y - hightSize, position.width, position.height);
@@ -58,11 +58,6 @@ namespace CustomProperty
             EditorGUI.PropertyField(pos1, bottomLeft, new GUIContent(""));
             EditorGUI.PropertyField(pos2, bottom, new GUIContent(""));
             EditorGUI.PropertyField(pos3, bottomRight, new GUIContent(""));
-
-
-            pos1 = new Rect(position.x, position.y - hightSize * 2, position.width, position.height);
-            SerializedProperty tile = property.FindPropertyRelative("_tile");
-            EditorGUI.PropertyField(pos1, tile, new GUIContent(""));
 
             EditorGUI.EndProperty();
         }
