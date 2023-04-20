@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e65e30ef834988846b95a4a9d8842ab6, type: 3}
   m_Name: Sand
   m_EditorClassIdentifier: 
-  _minValue: 22
-  _maxValue: 51
+  _prevGenerateParam: {fileID: 11400000, guid: c0099974c33668c438cb10cbd7d813a2, type: 2}
+  _maxWeight: 50
+  _cost: 1
   _tiles:
   - {fileID: 11400000, guid: 5f9beadaf4d2bd34f95beb5830d13735, type: 2}
   - {fileID: 11400000, guid: 80e1153387ad9da47902268dc12df11c, type: 2}
