@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using MapSystem.TileLayer;
+using UnityEngine.Tilemaps;
+using Zenject;
 
 namespace MapSystem
 {
@@ -7,8 +9,10 @@ namespace MapSystem
     {
         [SerializeField] private TileGenerator _mapGenerator;
         [SerializeField] private TileConnectionsGenerator _connectionsGenerator;
-        private MapCell[,] _mapCells;
 
+        [Inject] private Tilemap _tilemap;
+        
+        private MapCell[,] _mapCells;
         private int _width, _hight;
 
         public MapCell[,] MapCells => _mapCells;
@@ -18,6 +22,16 @@ namespace MapSystem
             _mapGenerator.GenerationStarted += SetMapSize;
             _mapGenerator.SendCost += SetCell;
             _connectionsGenerator.SendCost += SetCell;
+        }
+
+        public Vector3Int GetCellPosition(Vector3 worldPosition)
+        {
+            return _tilemap.WorldToCell(worldPosition);
+        }
+
+        public Vector3 GetCellCenter(Vector3Int cellPosition)
+        {
+            return _tilemap.GetCellCenterWorld(new Vector3Int(cellPosition.x, cellPosition.y, 0));
         }
 
         private void SetMapSize(int width, int hight)

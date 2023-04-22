@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prevGenerateParam: {fileID: 11400000, guid: 77c7acea809627944abdc64c694ee189, type: 2}
   _maxWeight: 10
-  _cost: 4
+  _cost: 10
   _tilesChoiceRules:
   - {fileID: 11400000, guid: 70186ea7c2048b04496eeeea955cd3e4, type: 2}
   - {fileID: 11400000, guid: 270334629e4f78f4cbf7f98a0290a2c9, type: 2}

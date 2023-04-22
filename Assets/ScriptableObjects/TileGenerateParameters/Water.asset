@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prevGenerateParam: {fileID: 0}
   _maxWeight: 1
-  _cost: 4
+  _cost: 20
   _tiles:
   - {fileID: 11400000, guid: eb648b36d6214eb48a4d652f32a79380, type: 2}
   - {fileID: 11400000, guid: f4f50356d3e6e1044b7c73526c85fcc2, type: 2}
