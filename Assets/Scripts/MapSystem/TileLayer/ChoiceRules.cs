@@ -70,10 +70,18 @@ namespace MapSystem.TileLayer
 
         internal List<int> GetKeys()
         {
+            TileRule[] tileRules = GetKeyRulesArray();
+            List<int> keys = new List<int>();
+            GetKeyRecurs(tileRules, keys);
+            return keys;
+        }
+
+        internal TileRule[] GetKeyRulesArray()
+        {
             TileRule[] tileRules = new TileRule[RulesCount];
             for (int i = 0; i < RulesCount; i++)
             {
-                switch(i)
+                switch (i)
                 {
                     case 0:
                         tileRules[i] = _topLeft;
@@ -103,9 +111,8 @@ namespace MapSystem.TileLayer
                         break;
                 }
             }
-            List<int> keys = new List<int>();
-            GetKeyRecurs(tileRules, keys);
-            return keys;
+
+            return tileRules;
         }
 
         private void GetKeyRecurs(TileRule[] tileRules, List<int> keys)
@@ -136,5 +143,5 @@ namespace MapSystem.TileLayer
         Different = 0,
         Same = 1,
         Both = 2
-    };
+    }
 }

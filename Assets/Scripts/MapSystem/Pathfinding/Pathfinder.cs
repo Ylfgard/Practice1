@@ -14,41 +14,45 @@ namespace MapSystem.Pathfinding
 
         //FOR DEBUG
         [Header("Test")]
-        [SerializeField] private Transform _origin;
+        [SerializeField] private bool _showPath;
+        [SerializeField] private Transform _unit;
         [SerializeField] private Transform _target;
         [SerializeField] private float _movePoints;
 
-        private Vector3Int _originPos;
+        private Vector3Int _from;
         private List<Vector3Int> _path;
+        private Dictionary<Vector3Int, PathNode> _availableCells;
         //
 
-        private MapCell[,] _mapCells => _mapKeeper.MapCells;
-        private Dictionary<Vector3Int, PathNode> _availableCells;
-
-        private void Awake()
-        {
-            _availableCells = new Dictionary<Vector3Int, PathNode>();
-        }
-
+        private IMapCell[,] _mapCells => _mapKeeper.MapCells;
+        
         [ContextMenu ("CalculatePath")]
         private void TestCalculation()
         {
-            Vector3Int origin = _mapKeeper.GetCellPosition(_origin.position);
+            Vector3Int origin = _mapKeeper.GetCellPosition(_unit.position);
             GetAvailableCells(origin, _movePoints);
         }
 
-        public List<Vector3Int> GetPathTo(Vector3Int origin, Vector3Int target)
+        public List<Vector3Int> GetPathTo(Vector3Int form, Vector3Int to)
         {
             List<Vector3Int> path = new List<Vector3Int>();
-            BuildPath(origin, target, ref path);
+            if (_availableCells.ContainsKey(to))
+            {
+                path.Add(to);
+                BuildPath(form, to, ref path);
+            }
             return path;
         }
 
-        public Dictionary<Vector3Int, PathNode> GetAvailableCells(Vector3Int origin, float movementPoints)
+        public Dictionary<Vector3Int, PathNode> GetAvailableCells(Vector3Int from, float movementPoints)
         {
-            _availableCells.Clear();
-            CalculatePath(origin, movementPoints);
-            _originPos = origin;
+            _from = from;
+            _availableCells = new Dictionary<Vector3Int, PathNode>();
+
+            List<PathNodeData> startNode = new List<PathNodeData>(1);
+            startNode.Add(new PathNodeData(from, movementPoints));
+
+            CalculatePath(startNode);
             return _availableCells;
         }
 
@@ -70,71 +74,82 @@ namespace MapSystem.Pathfinding
             }
         }
 
-        private void CalculatePath(Vector3Int current, float restMovement)
+        private void CalculatePath(List<PathNodeData> currentNodes)
         {
-            MapCell cell = _mapCells[current.x, current.y];
-
-            int i = 0;
-            for (int y = current.y + 1; y >= current.y - 1; y--)
+            List<PathNodeData> newPathNodesData = new List<PathNodeData>();
+            foreach (var currentNode in currentNodes)
             {
-                for (int x = current.x - 1; x <= current.x + 1; x++)
+                var currentPos = currentNode.Position;
+                IMapCell cell = _mapCells[currentPos.x, currentPos.y];
+
+                int i = 0;
+                for (int y = currentPos.y + 1; y >= currentPos.y - 1; y--)
                 {
-                    Vector3Int checkPos = new Vector3Int(x, y, current.z);
-                    bool notSameX = x != current.x;
-                    bool notSameY = y != current.y;
-
-                    if (checkPos != current && cell.Transitions.All[i] && _mapCells[x, y].Available)
+                    for (int x = currentPos.x - 1; x <= currentPos.x + 1; x++)
                     {
-                        float cost = StepCost;
-                        if (notSameX && notSameY) cost *= DiagonalStepMultiplier;
-                        cost += _mapCells[x, y].Cost;
+                        Vector3Int checkPos = new Vector3Int(x, y, currentPos.z);
+                        bool notSameX = x != currentPos.x;
+                        bool notSameY = y != currentPos.y;
 
-                        float checkRestMovement = restMovement - cost;
-                        if (checkRestMovement >= 0)
+                        if (checkPos != currentPos && cell.Transitions.All[i] == ContainedType.Free &&
+                            _mapCells[x, y].Type == ContainedType.Free)
                         {
-                            if (_availableCells.TryGetValue(checkPos, out PathNode node))
+                            float cost = StepCost;
+                            if (notSameX && notSameY) cost *= DiagonalStepMultiplier;
+                            cost += _mapCells[x, y].Cost;
+
+                            float checkRestMovement = currentNode.RestMovement - cost;
+                            if (checkRestMovement >= 0)
                             {
-                                if (node.RestMovement < checkRestMovement)
+                                if (_availableCells.TryGetValue(checkPos, out PathNode node))
                                 {
-                                    node.SetData(current, checkRestMovement);
-                                    CalculatePath(checkPos, checkRestMovement);
+                                    if (node.RestMovement < checkRestMovement)
+                                    {
+                                        node.SetData(currentPos, checkRestMovement);
+                                        
+                                        var connectedTile = new PathNodeData(checkPos, checkRestMovement);
+                                        if (newPathNodesData.Contains(connectedTile) == false)
+                                            newPathNodesData.Add(connectedTile);
+                                    }
+                                }
+                                else
+                                {
+                                    node = new PathNode(currentPos, checkRestMovement);
+                                    _availableCells.Add(checkPos, node);
+                                    newPathNodesData.Add(new PathNodeData(checkPos, checkRestMovement));
                                 }
                             }
-                            else
-                            {
-                                node = new PathNode(current, checkRestMovement);
-                                _availableCells.Add(checkPos, node);
-                                CalculatePath(checkPos, checkRestMovement);
-                            }
                         }
-                    }
 
-                    if (notSameX || notSameY) i++;
+                        if (notSameX || notSameY) i++;
+                    }
                 }
             }
+            
+            if (newPathNodesData.Count > 0)
+                CalculatePath(newPathNodesData);
         }
 
 #if UNITY_EDITOR
         private void OnDrawGizmos()
         {
+            if (_showPath == false) return;
             if (_availableCells == null) return;
-            var originPos = _mapKeeper.GetCellPosition(_origin.position);
+            var unitPos = _mapKeeper.GetCellPosition(_unit.position);
 
-            if (_originPos != originPos) return;
+            if (_from != unitPos) return;
             var pos = _mapKeeper.GetCellPosition(_target.position);
 
-            _path = GetPathTo(originPos, pos);
+            _path = GetPathTo(unitPos, pos);
             if (_path.Count == 0) return;
-
-            
+            Vector3 prevNode = _target.position;
             Gizmos.color = Color.red;
-            var prevNode = _mapKeeper.GetCellCenter(pos);
             foreach (var node in _path)
             {
                 Gizmos.DrawLine(_mapKeeper.GetCellCenter(node), prevNode);
                 prevNode = _mapKeeper.GetCellCenter(node);
             }
-            Gizmos.DrawLine(prevNode, _mapKeeper.GetCellCenter(_originPos));
+            Gizmos.DrawLine(_mapKeeper.GetCellCenter(unitPos), prevNode);
 
             Gizmos.color = Color.green;
             foreach (var point in _availableCells.Keys)

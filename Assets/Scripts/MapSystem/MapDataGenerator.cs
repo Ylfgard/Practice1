@@ -21,11 +21,10 @@ namespace MapSystem
             _seed = Random.Range(0, 999999);
         }
 
-        public int GetTileNoize(int x, int y)
+        public int GetTileWeight(int x, int y)
         {
             float noize = Mathf.PerlinNoise((x + _seed) / _blur, (y + _seed) / _blur);
-            if (noize < 0) noize = 0;
-            else if (noize > 1) noize = 1;
+            noize = Mathf.Clamp(noize, 0, 1);
             int result = Mathf.RoundToInt(noize * _weight);
             return result;
         }

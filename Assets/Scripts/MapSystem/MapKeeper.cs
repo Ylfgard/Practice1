@@ -1,37 +1,38 @@
 ﻿using UnityEngine;
-using MapSystem.TileLayer;
-using UnityEngine.Tilemaps;
 using Zenject;
+using MapSystem.TileLayer;
+using MapSystem.ObjectsLayer;
 
 namespace MapSystem
 {
     public class MapKeeper : MonoBehaviour
     {
-        [SerializeField] private TileGenerator _mapGenerator;
-        [SerializeField] private TileConnectionsGenerator _connectionsGenerator;
+        [SerializeField] private TilesGenerator _tilesGenerator;
+        [SerializeField] private ObjectsGenerator _objectsGenerator;
 
-        [Inject] private Tilemap _tilemap;
+        [Inject] private TilemapKeeper _tilemapKeeper;
         
         private MapCell[,] _mapCells;
         private int _width, _hight;
 
-        public MapCell[,] MapCells => _mapCells;
+        public IMapCell[,] MapCells => _mapCells;
 
         private void Awake()
         {
-            _mapGenerator.GenerationStarted += SetMapSize;
-            _mapGenerator.SendCost += SetCell;
-            _connectionsGenerator.SendCost += SetCell;
+            _tilesGenerator.GenerationStarted += SetMapSize;
+            _tilesGenerator.SendCost += SetCell;
+            _tilesGenerator.TileLayerGenerated += _objectsGenerator.GenerateObjects;
+            _objectsGenerator.ObjectSpawned += SetObject;
         }
 
         public Vector3Int GetCellPosition(Vector3 worldPosition)
         {
-            return _tilemap.WorldToCell(worldPosition);
+            return _tilemapKeeper.Tiles.WorldToCell(worldPosition);
         }
 
         public Vector3 GetCellCenter(Vector3Int cellPosition)
         {
-            return _tilemap.GetCellCenterWorld(new Vector3Int(cellPosition.x, cellPosition.y, 0));
+            return _tilemapKeeper.Tiles.GetCellCenterWorld(new Vector3Int(cellPosition.x, cellPosition.y, 0));
         }
 
         private void SetMapSize(int width, int hight)
@@ -43,27 +44,39 @@ namespace MapSystem
 
         private void SetCell(int x, int y, int cost)
         {
-            bool topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight;
+            bool leftTrans, rightTrans, topTrans, bottomTrans;
+            ContainedType topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight;
 
-            left = x > 0;
-            right = x < _width - 1;
-            bottom = y > 0;
-            top = y < _hight - 1;
-            topLeft = left && top;
-            topRight = right && top;
-            bottomLeft = left && bottom;
-            bottomRight = right && bottom;
+            leftTrans = x > 0;
+            rightTrans = x < _width - 1;
+            topTrans = y > 0;
+            bottomTrans = y < _hight - 1;
+
+            left = leftTrans ? ContainedType.Free : ContainedType.MapBorder;
+            right = rightTrans ? ContainedType.Free : ContainedType.MapBorder;
+            bottom = topTrans ? ContainedType.Free : ContainedType.MapBorder;
+            top = bottomTrans ? ContainedType.Free : ContainedType.MapBorder;
+            topLeft = leftTrans && topTrans ? ContainedType.Free : ContainedType.MapBorder;
+            topRight = rightTrans && topTrans ? ContainedType.Free : ContainedType.MapBorder;
+            bottomLeft = leftTrans && bottomTrans ? ContainedType.Free : ContainedType.MapBorder;
+            bottomRight = rightTrans && bottomTrans ? ContainedType.Free : ContainedType.MapBorder;
 
             AvailableTransitions availableTransitions = 
                 new AvailableTransitions(topLeft, top, topRight, left, right, bottomLeft, bottom, bottomRight);
             _mapCells[x, y] = new MapCell(cost, availableTransitions);
         }
 
+        private void SetObject(int x, int y, ContainedType type)
+        {
+            _mapCells[x, y].MyType = type;
+        }
+
         private void OnDestroy()
         {
-            _mapGenerator.GenerationStarted -= SetMapSize;
-            _mapGenerator.SendCost -= SetCell;
-            _connectionsGenerator.SendCost -= SetCell;
+            _tilesGenerator.GenerationStarted -= SetMapSize;
+            _tilesGenerator.SendCost -= SetCell;
+            _tilesGenerator.TileLayerGenerated -= _objectsGenerator.GenerateObjects;
+            _objectsGenerator.ObjectSpawned -= SetObject;
         }
     }
 }

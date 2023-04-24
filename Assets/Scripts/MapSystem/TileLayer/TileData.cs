@@ -4,23 +4,30 @@ namespace MapSystem.TileLayer
 {
     public class TileData
     {
-        protected Tile _tile;
-        protected int _cost;
-        
-        public int Weight;
+        public Tile Tile { get; private set; }
+        public int Cost { get; private set; }
+        public int Weight { get; private set; }
+        public bool FirstRun { get; private set; }
+        public ChoiceRules ChoiceRules { get; private set; }
 
-        public Tile Tile => _tile;
-        public int Cost => _cost;
-
-        public TileData(int weight)
+        public TileData(int weight, bool firstRun, ChoiceRules choiceRules)
         {
             Weight = weight;
+            FirstRun = firstRun;
+            ChoiceRules = choiceRules;
         }
 
         public void SetTile(Tile tile, int cost)
         {
-            _tile = tile;
-            _cost = cost;
+            Tile = tile;
+            Cost = cost;
+        }
+
+        public void SetTile(int weight, Tile tile, int cost)
+        {
+            Weight = weight;
+            Tile = tile;
+            Cost = cost;
         }
     }
 }

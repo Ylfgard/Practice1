@@ -12,10 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d97be99a08481a4c9d479d7aa0ec25c, type: 3}
   m_Name: Sand
   m_EditorClassIdentifier: 
-  _prevGenerateParam: {fileID: 11400000, guid: c0099974c33668c438cb10cbd7d813a2, type: 2}
-  _maxWeight: 50
-  _cost: 0
-  _tiles:
-  - {fileID: 11400000, guid: 5f9beadaf4d2bd34f95beb5830d13735, type: 2}
-  - {fileID: 11400000, guid: 80e1153387ad9da47902268dc12df11c, type: 2}
+  _mainTiles:
   - {fileID: 11400000, guid: 7b9b2cac4dc7e3c448d5b7e28197faec, type: 2}
+  - {fileID: 11400000, guid: 80e1153387ad9da47902268dc12df11c, type: 2}
+  - {fileID: 11400000, guid: 5f9beadaf4d2bd34f95beb5830d13735, type: 2}
+  _connectingTiles: []
+  _maxWeight: 50
+  _prevGenerateParam: {fileID: 11400000, guid: 77c7acea809627944abdc64c694ee189, type: 2}
+  _cost: 0

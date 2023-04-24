@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEngine.Tilemaps;
 
 using Random = UnityEngine.Random;
 
@@ -8,73 +9,33 @@ namespace MapSystem.TileLayer
 {
     internal class TileKeeper : MonoBehaviour
     {
-        [SerializeField] private TileGenerateParametersSO[] _tileParameters;
-        [SerializeField] private ConnectingTileGenerateParameters[] _connectingTilesParameters;
+        [SerializeField] private TileGenerateParameters[] _tilesParameters;
 
-        private Dictionary<int, TileGenerateParametersSO> _tiles;
-        private Dictionary<int, ConnectingTileGenerateParameters> _connectingTiles;
+        private Dictionary<int, TileGenerateParameters> _tiles;
 
         private void Awake()
         {
-            _tiles = new Dictionary<int, TileGenerateParametersSO>();
-            _connectingTiles = new Dictionary<int, ConnectingTileGenerateParameters>();
-
+            _tiles = new Dictionary<int, TileGenerateParameters>();
             GenerateNewTileParameters();    
         }
 
-        [ContextMenu("Generate New Tile Parameters")]
-        private void GenerateNewTileParameters()
+        public int TryGetTileMaxWeight(int weight)
         {
-            _tiles.Clear();
-            _connectingTiles.Clear();
-
-            foreach (var parameter in _tileParameters)
-            {
-                for (int i = parameter.MinWeight; i <= parameter.MaxWeight; i++)
-                {
-                    if (_tiles.ContainsKey(i))
-                        Debug.LogError("Key " + i + " is taken! Wrong " + parameter.name + "generate weight!");
-                    else
-                        _tiles.Add(i, parameter);
-                }
-            }
-
-            foreach (var connectingTile in _connectingTilesParameters)
-            {
-                connectingTile.InitializeConnectingTiles();
-                for (int i = connectingTile.Parameters.MinWeight; i <= connectingTile.Parameters.MaxWeight; i++)
-                {
-                    if (_tiles.ContainsKey(i))
-                        Debug.LogError("Key " + i + " is taken! Wrong " + connectingTile.Parameters.name + "generate weight!");
-                    else
-                        _connectingTiles.Add(i, connectingTile);
-                }
-            }
-        }
-
-        public bool TryGetTile(TileData tileData)
-        {
-            if (_tiles.TryGetValue(tileData.Weight, out TileGenerateParametersSO parameters))
-            {
-                int i = Random.Range(0, parameters.Tiles.Length);
-                tileData.SetTile(parameters.Tiles[i], parameters.Cost);
-                return true;
-            }
-            return false;
-        }
-
-        public int TryGetConnectingTileMaxWeight(int weight)
-        {
-            if (_connectingTiles.TryGetValue(weight, out ConnectingTileGenerateParameters connectingTile))
-                return connectingTile.Parameters.MaxWeight;
+            if (_tiles.TryGetValue(weight, out TileGenerateParameters parameter))
+                return parameter.MaxWeight;
 
             Debug.LogError("Wrong weight! " + weight);
             return 0;
         }
 
-        public bool TryGetConnectingTile(ConnectingTileData tileData)
+        public bool TryGetTile(TileData tileData, out bool weightChanged)
         {
-            _connectingTiles.TryGetValue(tileData.Weight, out ConnectingTileGenerateParameters connectingTile);
+            if (_tiles.TryGetValue(tileData.Weight, out TileGenerateParameters parameter) == false)
+            {
+                Debug.LogError("Wrong weight " + tileData.Weight);
+                weightChanged = false;
+                return false;
+            }
 
             var rules = tileData.ChoiceRules;
             int connectedTiles = Convert.ToByte(rules.Top) + Convert.ToByte(rules.Left) +
@@ -82,29 +43,63 @@ namespace MapSystem.TileLayer
 
             if (connectedTiles < 2)
             {
-                tileData.Weight = connectingTile.Parameters.MaxWeight + 1;
-                TryGetTile(tileData);
-                return true;
+                int nextTileWeight = parameter.MaxWeight + 1;
+                if (_tiles.TryGetValue(nextTileWeight, out TileGenerateParameters nextParameter))
+                {
+                    SetMainTile(tileData, nextParameter);
+                    weightChanged = true;
+                    return true;
+                }
+                weightChanged = false;
+                return false;
             }
             else
             {
-                connectedTiles += Convert.ToByte(rules.TopLeft) + Convert.ToByte(rules.TopRight) +
-                    Convert.ToByte(rules.BottomLeft) + Convert.ToByte(rules.BottomRight);
-                if (connectedTiles == 8)
+                if (tileData.FirstRun == false)
                 {
-                    tileData.Weight = connectingTile.Parameters.MinWeight - 1;
-                    TryGetTile(tileData);
-                    return true;
-                }
-                else if (tileData.FirstRun == false)
-                {
-                    tileData.SetTile(connectingTile.GetTile(tileData.ChoiceRules), connectingTile.Parameters.Cost);
+                    connectedTiles += Convert.ToByte(rules.TopLeft) + Convert.ToByte(rules.TopRight) +
+                        Convert.ToByte(rules.BottomLeft) + Convert.ToByte(rules.BottomRight);
+                    if (connectedTiles != 8 && parameter.TryGetTileConnecting(tileData.ChoiceRules, out Tile tile))
+                    {
+                        tileData.SetTile(tile, parameter.Cost);
+                        weightChanged = false;
+                    }
+                    else
+                    {
+                        SetMainTile(tileData, parameter);
+                        weightChanged = true;
+                    }
                     return true;
                 }
                 else
                 {
+                    weightChanged = false;
                     return false;
                 } 
+            }
+        }
+
+        private void SetMainTile(TileData tileData, TileGenerateParameters parameter)
+        {
+            int i = Random.Range(0, parameter.MainTiles.Length);
+            tileData.SetTile(parameter.MinWeight, parameter.MainTiles[i], parameter.Cost);
+        }
+
+        [ContextMenu("Generate New Tile Parameters")]
+        private void GenerateNewTileParameters()
+        {
+            _tiles.Clear();
+
+            foreach (var parameter in _tilesParameters)
+            {
+                parameter.InitializeTiles();
+                for (int i = parameter.MinWeight; i <= parameter.MaxWeight; i++)
+                {
+                    if (_tiles.ContainsKey(i))
+                        Debug.LogError("Key " + i + " is taken! Wrong " + parameter.MainTiles[0].name + "generate weight!");
+                    else
+                        _tiles.Add(i, parameter);
+                }
             }
         }
     }

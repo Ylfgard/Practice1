@@ -9,13 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65771f4bf647d3041b23e53921a0b571, type: 3}
-  m_Name: Water-Sand
+  m_Script: {fileID: 11500000, guid: 5d97be99a08481a4c9d479d7aa0ec25c, type: 3}
+  m_Name: Water
   m_EditorClassIdentifier: 
-  _prevGenerateParam: {fileID: 11400000, guid: 77c7acea809627944abdc64c694ee189, type: 2}
-  _maxWeight: 10
-  _cost: 10
-  _tilesChoiceRules:
+  _mainTiles:
+  - {fileID: 11400000, guid: a6b949fcc4e3c974bb0d2d5a9e105296, type: 2}
+  - {fileID: 11400000, guid: eb648b36d6214eb48a4d652f32a79380, type: 2}
+  - {fileID: 11400000, guid: 967488429bc479e4b9fc6cd89fe9cc2e, type: 2}
+  - {fileID: 11400000, guid: f4f50356d3e6e1044b7c73526c85fcc2, type: 2}
+  _connectingTiles:
   - {fileID: 11400000, guid: 70186ea7c2048b04496eeeea955cd3e4, type: 2}
   - {fileID: 11400000, guid: 270334629e4f78f4cbf7f98a0290a2c9, type: 2}
   - {fileID: 11400000, guid: 905d58f84c5ab60499cd5c767313587e, type: 2}
@@ -28,3 +30,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 16d30f380ed401c4bbfa2e353951e2a7, type: 2}
   - {fileID: 11400000, guid: 0c9a0c4b14c3a3e4288f8e240b0928c9, type: 2}
   - {fileID: 11400000, guid: 3476dce130b676d47a47eefc0d5045c0, type: 2}
+  _maxWeight: 10
+  _prevGenerateParam: {fileID: 0}
+  _cost: 20
