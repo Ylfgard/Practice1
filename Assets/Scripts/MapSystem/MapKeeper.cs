@@ -49,13 +49,13 @@ namespace MapSystem
 
             leftTrans = x > 0;
             rightTrans = x < _width - 1;
-            topTrans = y > 0;
-            bottomTrans = y < _hight - 1;
+            bottomTrans = y > 0;
+            topTrans = y < _hight - 1;
 
             left = leftTrans ? ContainedType.Free : ContainedType.MapBorder;
             right = rightTrans ? ContainedType.Free : ContainedType.MapBorder;
-            bottom = topTrans ? ContainedType.Free : ContainedType.MapBorder;
-            top = bottomTrans ? ContainedType.Free : ContainedType.MapBorder;
+            bottom = bottomTrans ? ContainedType.Free : ContainedType.MapBorder;
+            top = topTrans ? ContainedType.Free : ContainedType.MapBorder;
             topLeft = leftTrans && topTrans ? ContainedType.Free : ContainedType.MapBorder;
             topRight = rightTrans && topTrans ? ContainedType.Free : ContainedType.MapBorder;
             bottomLeft = leftTrans && bottomTrans ? ContainedType.Free : ContainedType.MapBorder;

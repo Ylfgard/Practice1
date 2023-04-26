@@ -547,6 +547,7 @@ MonoBehaviour:
   _blur: 10
   _width: 250
   _hight: 250
+  _bordersSize: 20
 --- !u!114 &519533530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -786,10 +787,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _mapKeeper: {fileID: 519533530}
   _marker: {fileID: 8079808927981608210, guid: 758e3fb7504326d4a9f799de407ec94c, type: 3}
-  _showPath: 1
+  _showPath: 0
   _unit: {fileID: 666022766}
   _target: {fileID: 1617476904}
-  _movePoints: 205
+  _movePoints: 105
 --- !u!1 &1256662465
 GameObject:
   m_ObjectHideFlags: 0

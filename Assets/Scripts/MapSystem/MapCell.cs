@@ -48,6 +48,7 @@
 
     public enum ContainedType
     {
+        None,
         Free,
         MapBorder,
         HighObstacle,

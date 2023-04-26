@@ -16,7 +16,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4b5dcd7d1288f474588a3f00dff4d9a0, type: 2}
   - {fileID: 11400000, guid: 975ee34d370da31458c0b27999d9b3c6, type: 2}
   - {fileID: 11400000, guid: d55ddae24e5511f46b6fd487f705c573, type: 2}
-  _type: 0
+  _type: 1
   _placedOnTilesParameters:
   - {fileID: 11400000, guid: bd917e1529fa7384498eaf3a23659a1a, type: 2}
   _fillingPercentage: 1

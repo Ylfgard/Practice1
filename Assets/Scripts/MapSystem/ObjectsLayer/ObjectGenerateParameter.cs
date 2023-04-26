@@ -45,6 +45,7 @@ namespace MapSystem.ObjectsLayer
 
     internal enum ObjectType
     {
+        None,
         HighObstacle,
         LowObstacle
     }

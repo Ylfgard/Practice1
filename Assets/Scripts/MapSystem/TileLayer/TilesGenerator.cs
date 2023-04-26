@@ -20,7 +20,7 @@ namespace MapSystem.TileLayer
         [Inject] private TilemapKeeper _tilemapKeeper;
 
         private Tilemap _tilemap => _tilemapKeeper.Tiles;
-        private int _width, _hight;
+        private int _width, _hight, _bordersSize;
         private int[,] _mapWeights;
         private List<Vector3Int> _notSpawnedTiles;
 
@@ -40,17 +40,18 @@ namespace MapSystem.TileLayer
         {
             _width = _dataGenerator.Width;
             _hight = _dataGenerator.Hight;
+            _bordersSize = _dataGenerator.BordersSize;
             GenerationStarted?.Invoke(_width, _hight);
 
             _tilemap.ClearAllTiles();
             _notSpawnedTiles = new List<Vector3Int>();
-            _mapWeights = new int[_width, _hight];
+            _mapWeights = new int[_width + _bordersSize * 2, _hight + _bordersSize * 2];
             
-            for (int x = 0; x < _width; x++)
+            for (int x = -_bordersSize; x < _width + _bordersSize; x++)
             {
-                for (int y = 0; y < _hight; y++)
+                for (int y = -_bordersSize; y < _hight + _bordersSize; y++)
                 {
-                    _mapWeights[x, y] = _dataGenerator.GetTileWeight(x, y);
+                    _mapWeights[x + _bordersSize, y + _bordersSize] = _dataGenerator.GetTileWeight(x, y);
                     _notSpawnedTiles.Add(new Vector3Int(x, y));
                 }
             }
@@ -69,6 +70,8 @@ namespace MapSystem.TileLayer
                 x = tile.x;
                 y = tile.y;
                 Vector3Int pos = new Vector3Int(x, y, 0);
+                x += _bordersSize;
+                y += _bordersSize;
                 weight = _tileKeeper.TryGetTileMaxWeight(_mapWeights[x, y]);
 
                 bool leftSame = x <= 0;
@@ -95,20 +98,24 @@ namespace MapSystem.TileLayer
                 if (_tileKeeper.TryGetTile(tileData, out bool weightChanged))
                 {
                     _tilemap.SetTile(pos, tileData.Tile);
-                    SendCost?.Invoke(x, y, tileData.Cost);
-                    if (weightChanged)
+                    if (x >= _bordersSize && y >= _bordersSize &&
+                        x < _width + _bordersSize && y < _hight + _bordersSize)
                     {
-                        _mapWeights[x, y] = tileData.Weight;
+                        SendCost?.Invoke(x - _bordersSize, y - _bordersSize, tileData.Cost);
+                        if (weightChanged)
+                        {
+                            _mapWeights[x, y] = tileData.Weight;
                         
-                        if (freeTiles.TryGetValue(_mapWeights[x, y], out var tiles))
-                        {
-                            tiles.Add(tile);
-                        }
-                        else
-                        {
-                            List<Vector3Int> newTiles = new List<Vector3Int>();
-                            newTiles.Add(tile);
-                            freeTiles.Add(tileData.Weight, newTiles);
+                            if (freeTiles.TryGetValue(_mapWeights[x, y], out var tiles))
+                            {
+                                tiles.Add(tile);
+                            }
+                            else
+                            {
+                                List<Vector3Int> newTiles = new List<Vector3Int>();
+                                newTiles.Add(tile);
+                                freeTiles.Add(tileData.Weight, newTiles);
+                            }
                         }
                     }
                 }
